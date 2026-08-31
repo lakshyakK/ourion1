@@ -1,0 +1,574 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OurionSpectra — Exoplanet Atmospheric Spectrum Recovery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --navy: #0f2a52;
+      --navy-deep: #0a1d3a;
+      --navy-light: #183e74;
+      --blue-accent: #3b6fb0;
+      --blue-soft: #eef4fc;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --green: #10b981;
+      --green-bg: #ecfdf5;
+      --amber: #f59e0b;
+      --amber-bg: #fffbeb;
+      --radius: 12px;
+      --shadow: 0 4px 12px rgba(15, 42, 82, 0.05);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', -apple-system, sans-serif; }
+    body { background-color: var(--bg); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* Header */
+    header { background: #ffffff; border-bottom: 1px solid var(--border); padding: 1rem 2rem; }
+    .header-inner { max-width: 1280px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-logo { width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, var(--navy-light), var(--navy-deep)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 20px; box-shadow: 0 4px 10px rgba(15, 42, 82, 0.2); }
+    .brand-title { font-size: 1.25rem; font-weight: 800; color: var(--navy); letter-spacing: -0.5px; }
+    .brand-subtitle { font-size: 0.8rem; color: var(--text-sub); font-weight: 500; }
+    .header-status { display: flex; align-items: center; gap: 8px; background: var(--blue-soft); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; color: var(--navy); border: 1px solid rgba(59, 111, 176, 0.15); }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--amber); }
+    .status-dot.active { background: var(--green); }
+    
+    /* Main Layout */
+    main { max-width: 1280px; margin: 1.5rem auto; padding: 0 1.5rem; flex: 1; width: 100%; display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (min-width: 1024px) {
+      main { grid-template-columns: 380px 1fr; }
+    }
+    
+    /* Card Styles */
+    .card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 1.5rem; }
+    .card-title { font-size: 0.95rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--navy); display: flex; align-items: center; gap: 8px; margin-bottom: 1.25rem; }
+    .card-title svg { stroke: var(--blue-accent); }
+    
+    /* Input Controls */
+    .dropzone { border: 2px dashed #cbd5e1; border-radius: 10px; padding: 1.75rem 1rem; text-align: center; cursor: pointer; transition: all 0.2s; background: #fafcff; }
+    .dropzone:hover, .dropzone.dragover { border-color: var(--blue-accent); background: var(--blue-soft); }
+    .dropzone-icon { color: var(--blue-accent); margin-bottom: 0.5rem; }
+    .dropzone-text { font-size: 0.9rem; font-weight: 600; color: var(--navy); margin-bottom: 0.25rem; }
+    .dropzone-hint { font-size: 0.75rem; color: var(--text-sub); }
+    
+    .divider { display: flex; align-items: center; text-align: center; margin: 1rem 0; color: var(--text-sub); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
+    .divider:not(:empty)::before { margin-right: .75em; }
+    .divider:not(:empty)::after { margin-left: .75em; }
+    
+    /* Buttons */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 0.75rem 1.25rem; font-size: 0.9rem; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: none; }
+    .btn-primary { background: var(--navy); color: white; box-shadow: 0 4px 12px rgba(15, 42, 82, 0.2); }
+    .btn-primary:hover { background: var(--navy-light); transform: translateY(-1px); }
+    .btn-secondary { background: white; color: var(--navy); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--blue-soft); border-color: var(--blue-accent); }
+    .btn-action { background: linear-gradient(135deg, var(--navy), var(--navy-light)); color: white; padding: 0.9rem; font-size: 0.95rem; letter-spacing: 0.5px; }
+    .btn-action:hover { box-shadow: 0 6px 16px rgba(15, 42, 82, 0.25); }
+    .btn-action:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    
+    /* Sliders */
+    .slider-group { margin: 1.25rem 0; }
+    .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .slider-label { font-size: 0.85rem; font-weight: 700; color: var(--navy); }
+    .slider-badge { font-size: 0.85rem; font-weight: 800; color: var(--navy); background: var(--blue-soft); border: 1px solid rgba(59, 111, 176, 0.2); padding: 2px 8px; border-radius: 6px; }
+    input[type=range] { width: 100%; height: 6px; border-radius: 5px; background: #e2e8f0; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer; }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--navy); cursor: pointer; transition: transform 0.1s; }
+    input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+    .slider-scale { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-sub); margin-top: 4px; }
+    
+    /* Metrics Grid */
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+    .metric-card { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem; text-align: center; }
+    .metric-val { font-size: 1.35rem; font-weight: 800; color: var(--navy); margin-bottom: 2px; }
+    .metric-lbl { font-size: 0.75rem; font-weight: 700; color: var(--text-sub); }
+    
+    /* Chart Container */
+    .chart-card { display: flex; flex-direction: column; height: 420px; }
+    .chart-container { position: relative; flex: 1; width: 100%; }
+    
+    /* Tables */
+    .table-container { overflow-x: auto; margin-top: 1rem; border-radius: 8px; border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
+    th { background: #f8fafc; padding: 10px 12px; font-weight: 700; color: var(--navy); border-bottom: 1px solid var(--border); }
+    td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; color: var(--text-main); }
+    tr:last-child td { border-bottom: none; }
+    
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; }
+    .badge-detected { background: var(--green-bg); color: var(--green); }
+    .badge-tentative { background: var(--amber-bg); color: var(--amber); }
+    .badge-not { background: #f1f5f9; color: var(--text-sub); }
+    
+    /* Composition Pills */
+    .composition-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-top: 0.75rem; }
+    .comp-pill { background: var(--blue-soft); border: 1px solid rgba(59, 111, 176, 0.2); border-radius: 8px; padding: 8px; text-align: center; }
+    .comp-name { font-size: 0.75rem; font-weight: 700; color: var(--navy); }
+    .comp-val { font-size: 0.95rem; font-weight: 800; color: var(--blue-accent); }
+    
+    /* Footer */
+    footer { background: var(--navy-deep); color: #94a3b8; font-size: 0.8rem; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    footer span { font-weight: 600; color: #e2e8f0; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-logo">OS</div>
+        <div>
+          <div class="brand-title">OURIONSPECTRA</div>
+          <div class="brand-subtitle">Exoplanet Atmospheric Spectrum Recovery</div>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Awaiting Data</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <main>
+    <!-- Left Column: Controls & Input -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Input Spectrum Card -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Input Spectrum
+        </div>
+
+        <div class="dropzone" id="dropzone" onclick="document.getElementById('csvInput').click()">
+          <input type="file" id="csvInput" accept=".csv" style="display: none;">
+          <svg class="dropzone-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+          <div class="dropzone-text">Upload Observation CSV</div>
+          <div class="dropzone-hint">Wavelength and Flux columns (Auto-detects)</div>
+        </div>
+
+        <div class="divider">or</div>
+
+        <button class="btn btn-secondary" onclick="loadSampleSpectrum()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Use Sample Spectrum
+        </button>
+
+        <!-- Restoration Slider -->
+        <div class="slider-group" style="margin-top: 1.5rem;">
+          <div class="slider-header">
+            <span class="slider-label">Restoration Amount (%)</span>
+            <span class="slider-badge" id="restoreBadge">100%</span>
+          </div>
+          <input type="range" id="restoreSlider" min="0" max="100" value="100" oninput="updateRestoreSlider(this.value)">
+          <div class="slider-scale">
+            <span>0% · Raw</span>
+            <span>50% · Balanced</span>
+            <span>100% · Full</span>
+          </div>
+        </div>
+
+        <button class="btn btn-action" id="recoverBtn" onclick="runRecovery()" disabled style="margin-top: 1rem;">
+          ▶ RECOVER SPECTRUM
+        </button>
+      </div>
+
+      <!-- Atmospheric Composition Card -->
+      <div class="card" id="compCard" style="display: none;">
+        <div class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg>
+          Atmospheric Composition
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-sub); margin-bottom: 0.5rem;">Predicted Bulk Log-Abundance (Neural Net)</p>
+        <div class="composition-grid" id="compositionGrid"></div>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Analysis & Visualizations -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+
+      <!-- Metrics Row -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-val" id="metricRmseBefore">--</div>
+          <div class="metric-lbl">RMSE Before</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="metricRmseAfter">--</div>
+          <div class="metric-lbl">RMSE After</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="metricMae">--</div>
+          <div class="metric-lbl">MAE</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-val" id="metricImprovement" style="color: var(--green);">--</div>
+          <div class="metric-lbl">Improvement</div>
+        </div>
+      </div>
+
+      <!-- Spectrum Chart Card -->
+      <div class="card chart-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <div class="card-title" style="margin-bottom: 0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            Transmission Spectrum Analysis
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.75rem; width: auto;" onclick="exportCSV()">Export CSV</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="spectrumChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Atmospheric Features Table Card -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+          Detected Atmospheric Molecular Bands
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Molecule / Feature</th>
+                <th>Wavelength (nm)</th>
+                <th>Status</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody id="featuresTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center; color: var(--text-sub); padding: 1.5rem;">Load spectrum and run recovery to view detected features.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div>OurionSpectra <span>v1.0</span> (SICT037)</div>
+    <div>AI-Powered • Astronomy • Discovery</div>
+  </footer>
+
+  <script>
+    // State management
+    const state = {
+      wavelengths: [],
+      noisy_spec: [],
+      reference_spec: null,
+      full_recovered_spec: null,
+      unc_lower: [],
+      unc_upper: [],
+      dataset: '',
+      target: '',
+      restorePct: 100.0,
+      hasRecovery: false
+    };
+
+    let chart = null;
+
+    // Initialize Chart.js
+    function initChart() {
+      const ctx = document.getElementById('spectrumChart').getContext('2d');
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 12, font: { weight: '600', size: 11 } } },
+            tooltip: { padding: 10, cornerRadius: 8 }
+          },
+          scales: {
+            x: { title: { display: true, text: 'Wavelength (nm)', font: { weight: '600' } }, grid: { color: '#f1f5f9' } },
+            y: { title: { display: true, text: 'Normalized Flux', font: { weight: '600' } }, grid: { color: '#f1f5f9' } }
+          }
+        }
+      });
+    }
+
+    // Load Sample Spectrum
+    async function loadSampleSpectrum() {
+      setStatus('Loading Sample...', false);
+      try {
+        const res = await fetch('/api/sample', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ noise_level: 0.3 }) });
+        const data = await res.json();
+        state.wavelengths = data.wavelengths;
+        state.noisy_spec = data.noisy_spec;
+        state.reference_spec = data.reference_spec;
+        state.dataset = data.dataset;
+        state.target = data.target;
+        state.full_recovered_spec = null;
+        state.hasRecovery = false;
+
+        document.getElementById('recoverBtn').disabled = false;
+        setStatus('Data Loaded', true);
+        renderChart();
+        resetMetrics();
+      } catch (err) {
+        alert('Failed to load sample: ' + err.message);
+        setStatus('Error', false);
+      }
+    }
+
+    // Handle CSV File Upload
+    document.getElementById('csvInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      setStatus('Uploading CSV...', false);
+      try {
+        const previewRes = await fetch('/api/spectrum/preview-file', { method: 'POST', body: formData });
+        if (!previewRes.ok) throw new Error(await previewRes.text());
+        const preview = await previewRes.json();
+        
+        const reader = new FileReader();
+        reader.onload = async (evt) => {
+          const content = evt.target.result;
+          const processRes = await fetch('/api/spectrum/process-csv', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+              csv_content: content,
+              wl_idx: preview.suggested_wl_idx,
+              flux_idx: preview.suggested_flux_idx,
+              unit: preview.suggested_unit,
+              normalize: true,
+              dataset_name: file.name,
+              target: preview.target
+            })
+          });
+          const processed = await processRes.json();
+          state.wavelengths = processed.wavelengths;
+          state.noisy_spec = processed.noisy_spec;
+          state.reference_spec = null;
+          state.dataset = processed.dataset;
+          state.target = processed.target;
+          state.full_recovered_spec = null;
+          state.hasRecovery = false;
+
+          document.getElementById('recoverBtn').disabled = false;
+          setStatus('Data Loaded', true);
+          renderChart();
+          resetMetrics();
+        };
+        reader.readAsText(file);
+      } catch (err) {
+        alert('Failed to parse CSV: ' + err.message);
+        setStatus('Error', false);
+      }
+    });
+
+    // Run Recovery
+    async function runRecovery() {
+      if (!state.wavelengths.length) return;
+      const btn = document.getElementById('recoverBtn');
+      btn.disabled = true;
+      btn.textContent = 'RECOVERING...';
+      setStatus('Running AI Recovery...', false);
+
+      try {
+        const res = await fetch('/api/spectrum/recover', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            wavelengths: state.wavelengths,
+            noisy_spec: state.noisy_spec,
+            reference_spec: state.reference_spec,
+            noise_level: 0.3,
+            restore_percent: 100.0,
+            dataset: state.dataset,
+            target: state.target
+          })
+        });
+        const result = await res.json();
+        state.full_recovered_spec = result.recovered_spec;
+        state.unc_lower = result.unc_lower;
+        state.unc_upper = result.unc_upper;
+        state.hasRecovery = true;
+
+        applyRestorationBlend();
+        renderFeatures(result.features);
+        renderComposition(result.composition);
+        setStatus('Recovery Complete', true);
+      } catch (err) {
+        alert('Recovery failed: ' + err.message);
+        setStatus('Error', false);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '▶ RECOVER SPECTRUM';
+      }
+    }
+
+    // Dynamic Slider Blending
+    function updateRestoreSlider(val) {
+      document.getElementById('restoreBadge').textContent = val + '%';
+      state.restorePct = parseFloat(val);
+      if (state.hasRecovery && state.full_recovered_spec) {
+        applyRestorationBlend();
+      }
+    }
+
+    function applyRestorationBlend() {
+      const alpha = state.restorePct / 100.0;
+      const blended = state.noisy_spec.map((n, i) => (1.0 - alpha) * n + alpha * state.full_recovered_spec[i]);
+      
+      // Calculate Metrics
+      if (state.reference_spec) {
+        const rmseBefore = calcRmse(state.noisy_spec, state.reference_spec);
+        const rmseAfter = calcRmse(blended, state.reference_spec);
+        const mae = calcMae(blended, state.reference_spec);
+        const imp = ((1 - rmseAfter / rmseBefore) * 100).toFixed(1);
+
+        document.getElementById('metricRmseBefore').textContent = rmseBefore.toFixed(4);
+        document.getElementById('metricRmseAfter').textContent = rmseAfter.toFixed(4);
+        document.getElementById('metricMae').textContent = mae.toFixed(4);
+        document.getElementById('metricImprovement').textContent = imp + '%';
+      }
+
+      renderChart(blended);
+    }
+
+    function renderChart(recovered = null) {
+      const datasets = [
+        {
+          label: 'Observed (Noisy)',
+          data: state.noisy_spec,
+          borderColor: '#94a3b8',
+          borderWidth: 1.5,
+          borderDash: [3, 3],
+          pointRadius: 2,
+          pointBackgroundColor: '#94a3b8'
+        }
+      ];
+
+      if (state.reference_spec) {
+        datasets.unshift({
+          label: 'Reference / Truth',
+          data: state.reference_spec,
+          borderColor: '#64748b',
+          borderWidth: 1.5,
+          borderDash: [6, 4],
+          pointRadius: 0
+        });
+      }
+
+      if (recovered) {
+        datasets.push({
+          label: 'AI Recovered (' + state.restorePct + '%)',
+          data: recovered,
+          borderColor: '#0f2a52',
+          backgroundColor: 'rgba(59, 111, 176, 0.1)',
+          borderWidth: 2.5,
+          pointRadius: 0,
+          fill: true
+        });
+      }
+
+      chart.data.labels = state.wavelengths.map(w => Math.round(w));
+      chart.data.datasets = datasets;
+      chart.update();
+    }
+
+    function renderFeatures(features) {
+      const tbody = document.getElementById('featuresTableBody');
+      if (!features || !features.length) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-sub); padding: 1.5rem;">No features detected.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = features.map(f => {
+        const badgeClass = f.status === 'Detected' ? 'badge-detected' : (f.status === 'Tentative' ? 'badge-tentative' : 'badge-not');
+        return `<tr>
+          <td><strong>${f.name}</strong></td>
+          <td>${f.wl_nm ? f.wl_nm.toFixed(0) + ' nm' : '--'}</td>
+          <td><span class="badge ${badgeClass}">${f.status}</span></td>
+          <td>${f.confidence ? f.confidence.toFixed(0) + '%' : '--'}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function renderComposition(comp) {
+      const card = document.getElementById('compCard');
+      const grid = document.getElementById('compositionGrid');
+      if (!comp || !comp.available || !comp.parameters || !comp.parameters.length) {
+        card.style.display = 'none';
+        return;
+      }
+      card.style.display = 'block';
+      grid.innerHTML = comp.parameters.map(p => `
+        <div class="comp-pill">
+          <div class="comp-name">${p.molecule}</div>
+          <div class="comp-val">${p.log_abundance.toFixed(2)}</div>
+        </div>
+      `).join('');
+    }
+
+    function resetMetrics() {
+      document.getElementById('metricRmseBefore').textContent = '--';
+      document.getElementById('metricRmseAfter').textContent = '--';
+      document.getElementById('metricMae').textContent = '--';
+      document.getElementById('metricImprovement').textContent = '--';
+    }
+
+    function setStatus(text, active) {
+      document.getElementById('statusText').textContent = text;
+      const dot = document.getElementById('statusDot');
+      if (active) dot.classList.add('active'); else dot.classList.remove('active');
+    }
+
+    function calcRmse(a, b) {
+      let sum = 0;
+      for (let i = 0; i < a.length; i++) sum += (a[i] - b[i]) ** 2;
+      return Math.sqrt(sum / a.length);
+    }
+    function calcMae(a, b) {
+      let sum = 0;
+      for (let i = 0; i < a.length; i++) sum += Math.abs(a[i] - b[i]);
+      return sum / a.length;
+    }
+
+    function exportCSV() {
+      if (!state.wavelengths.length || !state.hasRecovery) {
+        alert('Run recovery first to export.');
+        return;
+      }
+      let csv = 'wavelength_nm,observed_noisy_flux,recovered_flux\n';
+      for (let i = 0; i < state.wavelengths.length; i++) {
+        csv += `${state.wavelengths[i]},${state.noisy_spec[i]},${state.full_recovered_spec[i]}\n`;
+      }
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ourionspectra_recovered.csv';
+      a.click();
+    }
+
+    window.onload = initChart;
+  </script>
+</body>
+</html>
