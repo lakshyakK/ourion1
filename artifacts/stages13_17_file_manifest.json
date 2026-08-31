@@ -1,0 +1,106 @@
+{
+  "files": [
+    {
+      "path": "ourionspectra/multitarget_data.py",
+      "bytes": 5207
+    },
+    {
+      "path": "ourionspectra/train_multitarget.py",
+      "bytes": 4617
+    },
+    {
+      "path": "ourionspectra/fast_recovery.py",
+      "bytes": 4062
+    },
+    {
+      "path": "ourionspectra/final_multitarget_validation.py",
+      "bytes": 3508
+    },
+    {
+      "path": "ourionspectra/stage15_scientific_report.py",
+      "bytes": 2297
+    },
+    {
+      "path": "ourionspectra/experimental_inference.py",
+      "bytes": 1728
+    },
+    {
+      "path": "ourionspectra/model.py",
+      "bytes": 3956
+    },
+    {
+      "path": "tests/test_multitarget_data.py",
+      "bytes": 927
+    },
+    {
+      "path": "tests/test_experimental_inference.py",
+      "bytes": 685
+    },
+    {
+      "path": "data/external_validation/hatp26b_wakeford2017.csv",
+      "bytes": 1225
+    },
+    {
+      "path": "data/external_validation/wasp17b_alderson2022.csv",
+      "bytes": 3193
+    },
+    {
+      "path": "data/multitarget_training/train.json",
+      "bytes": 46702157
+    },
+    {
+      "path": "data/multitarget_training/validation.json",
+      "bytes": 11671214
+    },
+    {
+      "path": "data/multitarget_training/test.json",
+      "bytes": 11668445
+    },
+    {
+      "path": "data/multitarget_training/dataset_metadata.json",
+      "bytes": 1542
+    },
+    {
+      "path": "artifacts/recovery_model/stage14_fast/model.pt",
+      "bytes": 44221
+    },
+    {
+      "path": "artifacts/recovery_model/stage14_fast/training_report.json",
+      "bytes": 2228
+    },
+    {
+      "path": "artifacts/recovery_model/stage15/evaluation.json",
+      "bytes": 6820
+    },
+    {
+      "path": "artifacts/recovery_model/stage15/STAGE15_REPORT.md",
+      "bytes": 1902
+    },
+    {
+      "path": "artifacts/recovery_model/stage15/multitarget_rmse_benchmark.png",
+      "bytes": 49189
+    },
+    {
+      "path": "artifacts/recovery_model/stage15/uncertainty_coverage.png",
+      "bytes": 86137
+    },
+    {
+      "path": "artifacts/recovery_model/stage17_full_test_suite.txt",
+      "bytes": 9391
+    },
+    {
+      "path": "artifacts/FINAL_STAGES_13_17_REPORT.md",
+      "bytes": 4833
+    },
+    {
+      "path": "data/external_validation/source_manifest.json",
+      "bytes": 1388
+    },
+    {
+      "path": "README.md",
+      "bytes": 5636
+    }
+  ],
+  "tests": "82/82 passed",
+  "default_ml_enabled": false
+}
