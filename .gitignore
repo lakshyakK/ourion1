@@ -1,0 +1,34 @@
+﻿# Python & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+
+# Build & Distributions
+build/
+dist/
+*.spec
+*.egg-info/
+.eggs/
+
+# IDEs & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing & Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Archives & Temporary Artifacts
+*.zip
+*.log
+data/sessions/*.json
+!data/sessions/.gitkeep
